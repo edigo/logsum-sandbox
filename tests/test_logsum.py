@@ -10,6 +10,7 @@ FIXTURES = Path(__file__).parent.parent / "data" / "fixtures"
 PROJECT_ROOT = Path(__file__).parent.parent
 LOGSUM = [sys.executable, "-m", "src.logsum"]
 
+
 def _cwd_env(cwd: Path) -> dict:
     """Env with PROJECT_ROOT on PYTHONPATH so src.logsum is importable from any cwd."""
     env = os.environ.copy()
@@ -21,6 +22,7 @@ def _cwd_env(cwd: Path) -> dict:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def run_logsum(input_path: Path, output_path: Path, extra_args=None):
     cmd = LOGSUM + ["--input", str(input_path), "--output", str(output_path)]
@@ -38,6 +40,7 @@ def read_summary(path: Path) -> list[dict]:
 # §5 — Output columns
 # ---------------------------------------------------------------------------
 
+
 def test_output_columns(tmp_path):
     out = tmp_path / "summary.csv"
     run_logsum(FIXTURES / "happy_path.csv", out)
@@ -50,6 +53,7 @@ def test_output_columns(tmp_path):
 # ---------------------------------------------------------------------------
 # §2 & §3 — Grouping and normalisation
 # ---------------------------------------------------------------------------
+
 
 def test_grouping_by_normalised_level_and_service(tmp_path):
     """'info', 'INFO' and ' auth ', 'Auth' must collapse into one group each."""
@@ -86,8 +90,7 @@ def test_service_normalised_to_lowercase(tmp_path):
 def test_level_whitespace_stripped(tmp_path):
     """Levels with surrounding spaces must still normalise correctly."""
     csv_content = (
-        "timestamp,level,service,message\n"
-        "2024-01-15T08:00:00Z, INFO ,svc,msg\n"
+        "timestamp,level,service,message\n2024-01-15T08:00:00Z, INFO ,svc,msg\n"
     )
     inp = tmp_path / "ws_level.csv"
     inp.write_text(csv_content, encoding="utf-8")
@@ -100,8 +103,7 @@ def test_level_whitespace_stripped(tmp_path):
 
 def test_service_whitespace_stripped(tmp_path):
     csv_content = (
-        "timestamp,level,service,message\n"
-        "2024-01-15T08:00:00Z,INFO, MyService ,msg\n"
+        "timestamp,level,service,message\n2024-01-15T08:00:00Z,INFO, MyService ,msg\n"
     )
     inp = tmp_path / "ws_svc.csv"
     inp.write_text(csv_content, encoding="utf-8")
@@ -114,6 +116,7 @@ def test_service_whitespace_stripped(tmp_path):
 # ---------------------------------------------------------------------------
 # §3 & §4 — UTC normalisation and first_seen / last_seen ordering
 # ---------------------------------------------------------------------------
+
 
 def test_timestamps_written_in_utc_z_format(tmp_path):
     out = tmp_path / "summary.csv"
@@ -177,6 +180,7 @@ def test_same_instant_different_offset_produces_same_string(tmp_path):
 # §4 — Count aggregation
 # ---------------------------------------------------------------------------
 
+
 def test_count_value(tmp_path):
     """happy_path.csv has 2 INFO/auth rows and 2 ERROR/auth rows."""
     out = tmp_path / "summary.csv"
@@ -199,6 +203,7 @@ def test_count_excludes_malformed_timestamp_rows(tmp_path):
 # ---------------------------------------------------------------------------
 # §6 — Missing / blank level → UNKNOWN
 # ---------------------------------------------------------------------------
+
 
 def test_blank_level_becomes_unknown(tmp_path):
     out = tmp_path / "summary.csv"
@@ -231,6 +236,7 @@ def test_blank_level_emits_stderr_warning_with_line_number(tmp_path):
 # §7 — Malformed timestamp
 # ---------------------------------------------------------------------------
 
+
 def test_malformed_timestamp_row_skipped(tmp_path):
     out = tmp_path / "summary.csv"
     result = run_logsum(FIXTURES / "malformed_ts.csv", out)
@@ -261,6 +267,7 @@ def test_malformed_timestamp_processing_continues(tmp_path):
 # §8 — Empty input
 # ---------------------------------------------------------------------------
 
+
 def test_header_only_input_exits_zero(tmp_path):
     out = tmp_path / "summary.csv"
     result = run_logsum(FIXTURES / "header_only.csv", out)
@@ -287,6 +294,7 @@ def test_completely_empty_file_exits_zero(tmp_path):
 # ---------------------------------------------------------------------------
 # §9 — Exit codes and CLI flags
 # ---------------------------------------------------------------------------
+
 
 def test_exit_zero_on_success(tmp_path):
     out = tmp_path / "summary.csv"
@@ -319,19 +327,35 @@ def test_short_flags(tmp_path):
 def test_default_input_filename_used_when_no_flag(tmp_path):
     """When --input is omitted, tool should look for events.csv in cwd."""
     import shutil
+
     shutil.copy(FIXTURES / "happy_path.csv", tmp_path / "events.csv")
     out = tmp_path / "summary.csv"
     cmd = LOGSUM + ["--output", str(out)]
-    result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(tmp_path), env=_cwd_env(tmp_path), check=False)
+    result = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        cwd=str(tmp_path),
+        env=_cwd_env(tmp_path),
+        check=False,
+    )
     assert result.returncode == 0
 
 
 def test_default_output_filename_used_when_no_flag(tmp_path):
     """When --output is omitted, tool should write summary.csv in cwd."""
     import shutil
+
     shutil.copy(FIXTURES / "happy_path.csv", tmp_path / "events.csv")
     cmd = LOGSUM
-    result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(tmp_path), env=_cwd_env(tmp_path), check=False)
+    result = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        cwd=str(tmp_path),
+        env=_cwd_env(tmp_path),
+        check=False,
+    )
     assert result.returncode == 0
     assert (tmp_path / "summary.csv").exists()
 
@@ -339,6 +363,7 @@ def test_default_output_filename_used_when_no_flag(tmp_path):
 # ---------------------------------------------------------------------------
 # §9 — --min-count flag
 # ---------------------------------------------------------------------------
+
 
 def test_min_count_filters_below_threshold(tmp_path):
     """--min-count 3 on happy_path.csv (both groups have count 2) → header-only output."""
@@ -377,6 +402,7 @@ def test_min_count_default_unchanged(tmp_path):
 # ---------------------------------------------------------------------------
 # Additional columns beyond 'message' are ignored (§1)
 # ---------------------------------------------------------------------------
+
 
 def test_extra_columns_ignored(tmp_path):
     csv_content = (
