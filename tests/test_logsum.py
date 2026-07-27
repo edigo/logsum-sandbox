@@ -337,6 +337,44 @@ def test_default_output_filename_used_when_no_flag(tmp_path):
 
 
 # ---------------------------------------------------------------------------
+# §9 — --min-count flag
+# ---------------------------------------------------------------------------
+
+def test_min_count_filters_below_threshold(tmp_path):
+    """--min-count 3 on happy_path.csv (both groups have count 2) → header-only output."""
+    out = tmp_path / "summary.csv"
+    result = run_logsum(FIXTURES / "happy_path.csv", out, ["--min-count", "3"])
+    assert result.returncode == 0
+    rows = read_summary(out)
+    assert rows == []
+
+
+def test_min_count_keeps_at_threshold(tmp_path):
+    """--min-count 2 keeps groups whose count == 2 (boundary inclusive)."""
+    out = tmp_path / "summary.csv"
+    run_logsum(FIXTURES / "happy_path.csv", out, ["--min-count", "2"])
+    rows = read_summary(out)
+    assert len(rows) == 2
+
+
+def test_min_count_one_keeps_all(tmp_path):
+    """--min-count 1 produces the same output as no flag."""
+    out_default = tmp_path / "default.csv"
+    out_min1 = tmp_path / "min1.csv"
+    run_logsum(FIXTURES / "happy_path.csv", out_default)
+    run_logsum(FIXTURES / "happy_path.csv", out_min1, ["--min-count", "1"])
+    assert read_summary(out_default) == read_summary(out_min1)
+
+
+def test_min_count_default_unchanged(tmp_path):
+    """No --min-count flag → all groups present (regression guard)."""
+    out = tmp_path / "summary.csv"
+    run_logsum(FIXTURES / "happy_path.csv", out)
+    rows = read_summary(out)
+    assert len(rows) == 2
+
+
+# ---------------------------------------------------------------------------
 # Additional columns beyond 'message' are ignored (§1)
 # ---------------------------------------------------------------------------
 
