@@ -78,6 +78,7 @@ header-only `summary.csv` and exit 0. No error is raised.
 |---|---|---|---|
 | `--input` | `-i` | `events.csv` | Path to input CSV |
 | `--output` | `-o` | `summary.csv` | Path to output CSV |
+| `--min-count` | — | _(all groups)_ | Only output groups whose `count` is >= N |
 
 | Exit code | Meaning |
 |---|---|
@@ -87,7 +88,7 @@ header-only `summary.csv` and exit 0. No error is raised.
 
 ## 10. Out of scope
 
-- Date-range filtering
+- Date-range filtering or per-row filtering
 - Streaming or real-time input
 - Message deduplication or clustering
 - Sorting of output rows

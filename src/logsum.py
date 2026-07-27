@@ -25,9 +25,8 @@ def _normalise_service(raw):
     return raw.strip().lower()
 
 
-def summarise(input_path, output_path):
+def _read_groups(input_path):
     groups = {}
-
     try:
         with open(input_path, newline='', encoding='utf-8') as f_in:
             reader = csv.DictReader(f_in)
@@ -47,16 +46,17 @@ def summarise(input_path, output_path):
                     continue
 
                 key = (level, service)
-                if key not in groups:
-                    groups[key] = {'count': 0, 'first': dt, 'last': dt}
-                g = groups[key]
+                g = groups.setdefault(key, {'count': 0, 'first': dt, 'last': dt})
                 g['count'] += 1
                 g['first'] = min(g['first'], dt)
                 g['last'] = max(g['last'], dt)
     except OSError as e:
         print(f'ERROR: cannot read {input_path}: {e}', file=sys.stderr)
         sys.exit(1)
+    return groups
 
+
+def _write_summary(output_path, groups):
     try:
         with open(output_path, 'w', newline='', encoding='utf-8') as f_out:
             writer = csv.writer(f_out)
@@ -72,14 +72,24 @@ def summarise(input_path, output_path):
         sys.exit(2)
 
 
+def summarise(input_path, output_path, min_count=None):
+    groups = _read_groups(input_path)
+    if min_count is not None:
+        groups = {k: v for k, v in groups.items() if v['count'] >= min_count}
+    _write_summary(output_path, groups)
+
+
 def main():
     parser = argparse.ArgumentParser(description='Summarise event logs by level and service.')
     parser.add_argument('positional_input', nargs='?', default=None, metavar='INPUT')
     parser.add_argument('positional_output', nargs='?', default=None, metavar='OUTPUT')
     parser.add_argument('--input', '-i', default='events.csv', metavar='PATH')
     parser.add_argument('--output', '-o', default='summary.csv', metavar='PATH')
+    parser.add_argument('--min-count', type=int, default=None, metavar='N',
+                        help='Only output groups with count >= N')
     args = parser.parse_args()
-    summarise(args.positional_input or args.input, args.positional_output or args.output)
+    summarise(args.positional_input or args.input, args.positional_output or args.output,
+              min_count=args.min_count)
 
 
 if __name__ == '__main__':
