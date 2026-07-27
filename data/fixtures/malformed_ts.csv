@@ -1,0 +1,5 @@
+timestamp,level,service,message
+not-a-date,ERROR,svc,bad ts row
+2024-01-15T08:00:00Z,ERROR,svc,good row
+totally_wrong,ERROR,svc,another bad row
+2024-01-15T09:00:00Z,ERROR,svc,another good row

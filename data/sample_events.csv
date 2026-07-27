@@ -1,0 +1,7 @@
+timestamp,level,service,message
+2024-01-15T08:00:00Z,INFO,auth,User login success
+2024-01-15T09:30:00+02:00,info,Auth,Token refresh
+2024-01-15T10:00:00Z,ERROR,payment,Payment failed
+2024-01-15T11:00:00Z,,gateway,Health check
+not-a-timestamp,WARN,billing,Bad entry
+2024-01-15T12:00:00Z,WARN,billing,Slow response

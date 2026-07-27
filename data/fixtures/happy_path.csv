@@ -1,0 +1,5 @@
+timestamp,level,service,message
+2024-01-15T08:00:00Z,INFO,Auth,user login
+2024-01-15T09:00:00Z,info, auth ,user logout
+2024-01-15T10:00:00Z,ERROR,auth,connection failed
+2024-01-15T11:00:00Z,ERROR, Auth ,retry
