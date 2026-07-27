@@ -26,7 +26,7 @@ def run_logsum(input_path: Path, output_path: Path, extra_args=None):
     cmd = LOGSUM + ["--input", str(input_path), "--output", str(output_path)]
     if extra_args:
         cmd += extra_args
-    return subprocess.run(cmd, capture_output=True, text=True)
+    return subprocess.run(cmd, capture_output=True, text=True, check=False)
 
 
 def read_summary(path: Path) -> list[dict]:
@@ -310,7 +310,7 @@ def test_exit_two_on_unwritable_output(tmp_path):
 def test_short_flags(tmp_path):
     out = tmp_path / "summary.csv"
     cmd = LOGSUM + ["-i", str(FIXTURES / "happy_path.csv"), "-o", str(out)]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
     assert result.returncode == 0
     rows = read_summary(out)
     assert len(rows) > 0
@@ -322,7 +322,7 @@ def test_default_input_filename_used_when_no_flag(tmp_path):
     shutil.copy(FIXTURES / "happy_path.csv", tmp_path / "events.csv")
     out = tmp_path / "summary.csv"
     cmd = LOGSUM + ["--output", str(out)]
-    result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(tmp_path), env=_cwd_env(tmp_path))
+    result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(tmp_path), env=_cwd_env(tmp_path), check=False)
     assert result.returncode == 0
 
 
@@ -331,7 +331,7 @@ def test_default_output_filename_used_when_no_flag(tmp_path):
     import shutil
     shutil.copy(FIXTURES / "happy_path.csv", tmp_path / "events.csv")
     cmd = LOGSUM
-    result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(tmp_path), env=_cwd_env(tmp_path))
+    result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(tmp_path), env=_cwd_env(tmp_path), check=False)
     assert result.returncode == 0
     assert (tmp_path / "summary.csv").exists()
 
