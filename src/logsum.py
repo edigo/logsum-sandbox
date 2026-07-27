@@ -48,8 +48,7 @@ def _read_groups(input_path):
                 level = _normalise_level(raw_level)
                 service = _normalise_service(row.get("service", ""))
                 key = (level, service)
-                if key not in groups:
-                    groups[key] = {"count": 0, "first": ts, "last": ts}
+                groups.setdefault(key, {"count": 0, "first": ts, "last": ts})
                 groups[key]["count"] += 1
                 groups[key]["first"] = min(groups[key]["first"], ts)
                 groups[key]["last"] = max(groups[key]["last"], ts)
