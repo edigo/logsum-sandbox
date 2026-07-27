@@ -1,13 +1,10 @@
 """Tests derived exclusively from spec.md. Do not import implementation details."""
 
 import csv
+import os
 import subprocess
 import sys
 from pathlib import Path
-
-import pytest
-
-import os
 
 FIXTURES = Path(__file__).parent.parent / "data" / "fixtures"
 PROJECT_ROOT = Path(__file__).parent.parent

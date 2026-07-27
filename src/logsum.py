@@ -56,10 +56,8 @@ def summarise(input_path, output_path):
                 groups[key] = {'count': 0, 'first': dt, 'last': dt}
             g = groups[key]
             g['count'] += 1
-            if dt < g['first']:
-                g['first'] = dt
-            if dt > g['last']:
-                g['last'] = dt
+            g['first'] = min(g['first'], dt)
+            g['last'] = max(g['last'], dt)
 
     try:
         f_out = open(output_path, 'w', newline='', encoding='utf-8')
