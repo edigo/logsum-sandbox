@@ -5,7 +5,7 @@
 ```python
 key = (level, service)
 if key not in groups:
-    groups[key] = {'count': 0, 'first': dt, 'last': dt}
+    groups[key] = {"count": 0, "first": dt, "last": dt}
 g = groups[key]
 ```
 
