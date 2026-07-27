@@ -26,54 +26,50 @@ def _normalise_service(raw):
 
 
 def summarise(input_path, output_path):
+    groups = {}
+
     try:
-        f_in = open(input_path, newline='', encoding='utf-8')
+        with open(input_path, newline='', encoding='utf-8') as f_in:
+            reader = csv.DictReader(f_in)
+            for lineno, row in enumerate(reader, start=2):
+                raw_level = row.get('level', '')
+                raw_service = row.get('service', '')
+                raw_ts = row.get('timestamp', '')
+
+                if not raw_level.strip():
+                    print(f'WARNING: line {lineno}: blank level, using UNKNOWN', file=sys.stderr)
+                level = _normalise_level(raw_level)
+                service = _normalise_service(raw_service)
+
+                dt = _parse_ts(raw_ts)
+                if dt is None:
+                    print(f'WARNING: line {lineno}: malformed timestamp {raw_ts!r}, row skipped', file=sys.stderr)
+                    continue
+
+                key = (level, service)
+                if key not in groups:
+                    groups[key] = {'count': 0, 'first': dt, 'last': dt}
+                g = groups[key]
+                g['count'] += 1
+                g['first'] = min(g['first'], dt)
+                g['last'] = max(g['last'], dt)
     except OSError as e:
         print(f'ERROR: cannot read {input_path}: {e}', file=sys.stderr)
         sys.exit(1)
 
-    groups = {}
-
-    with f_in:
-        reader = csv.DictReader(f_in)
-        for lineno, row in enumerate(reader, start=2):
-            raw_level = row.get('level', '')
-            raw_service = row.get('service', '')
-            raw_ts = row.get('timestamp', '')
-
-            if not raw_level.strip():
-                print(f'WARNING: line {lineno}: blank level, using UNKNOWN', file=sys.stderr)
-            level = _normalise_level(raw_level)
-            service = _normalise_service(raw_service)
-
-            dt = _parse_ts(raw_ts)
-            if dt is None:
-                print(f'WARNING: line {lineno}: malformed timestamp {raw_ts!r}, row skipped', file=sys.stderr)
-                continue
-
-            key = (level, service)
-            if key not in groups:
-                groups[key] = {'count': 0, 'first': dt, 'last': dt}
-            g = groups[key]
-            g['count'] += 1
-            g['first'] = min(g['first'], dt)
-            g['last'] = max(g['last'], dt)
-
     try:
-        f_out = open(output_path, 'w', newline='', encoding='utf-8')
+        with open(output_path, 'w', newline='', encoding='utf-8') as f_out:
+            writer = csv.writer(f_out)
+            writer.writerow(['level', 'service', 'count', 'first_seen', 'last_seen'])
+            for (level, service), g in groups.items():
+                writer.writerow([
+                    level, service, g['count'],
+                    g['first'].strftime(_OUT_FMT),
+                    g['last'].strftime(_OUT_FMT),
+                ])
     except OSError as e:
         print(f'ERROR: cannot write {output_path}: {e}', file=sys.stderr)
         sys.exit(2)
-
-    with f_out:
-        writer = csv.writer(f_out)
-        writer.writerow(['level', 'service', 'count', 'first_seen', 'last_seen'])
-        for (level, service), g in groups.items():
-            writer.writerow([
-                level, service, g['count'],
-                g['first'].strftime(_OUT_FMT),
-                g['last'].strftime(_OUT_FMT),
-            ])
 
 
 def main():
